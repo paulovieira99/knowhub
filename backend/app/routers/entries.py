@@ -50,10 +50,13 @@ async def list_entries(
     filters = []
 
     if q and q.strip():
-        # Full-text search + trigram fallback
+        term = q.strip()
+        ts_query = func.plainto_tsquery("portuguese", term)
+        pattern = f"%{term}%"
         search_filter = or_(
-            Entry.search_vec.op("@@")(func.plainto_tsquery("portuguese", q)),
-            Entry.title.op("%")(q),
+            Entry.search_vec.op("@@")(ts_query),
+            Entry.title.ilike(pattern),
+            Entry.content.ilike(pattern),
         )
         filters.append(search_filter)
 
@@ -73,9 +76,11 @@ async def list_entries(
 
     # Order: pinned first, then by relevance or updated
     if q and q.strip():
+        term = q.strip()
+        ts_query = func.plainto_tsquery("portuguese", term)
         base = base.order_by(
             Entry.is_pinned.desc(),
-            func.ts_rank(Entry.search_vec, func.plainto_tsquery("portuguese", q)).desc(),
+            func.ts_rank(Entry.search_vec, ts_query).desc(),
             Entry.updated_at.desc(),
         )
     else:

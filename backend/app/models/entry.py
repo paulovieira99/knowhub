@@ -1,6 +1,9 @@
+from typing import Any, Optional
+
 from sqlalchemy import (
-    Integer, String, Text, Boolean, DateTime, ForeignKey, Table, Column, func
+    Integer, String, Text, Boolean, DateTime, ForeignKey, Table, Column, func, FetchedValue
 )
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
@@ -31,6 +34,11 @@ class Entry(Base):
     entry_type: Mapped[str] = mapped_column(String(32), default="note")
     language: Mapped[str | None] = mapped_column(String(32), nullable=True)
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)
+    search_vec: Mapped[Optional[Any]] = mapped_column(
+        TSVECTOR,
+        server_default=FetchedValue(),
+        nullable=True,
+    )
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

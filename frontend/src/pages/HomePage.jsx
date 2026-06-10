@@ -28,37 +28,42 @@ export default function HomePage() {
   const debounceRef = useRef(null)
 
   const tagFilter = searchParams.get('tag') || ''
+  const isSearching = query.trim().length > 0
 
   const load = useCallback(async (q, pg, tag) => {
     setLoading(true)
     try {
-      const data = await api.listEntries({ q, page: pg, page_size: 24, tag })
+      const data = await api.listEntries({ q: q.trim() || undefined, page: pg, page_size: 24, tag })
       setEntries(data.items)
       setTotal(data.total)
-    } catch (e) {
+    } catch {
+      setEntries([])
+      setTotal(0)
       toast.error('Erro ao carregar entradas')
     } finally {
       setLoading(false)
     }
   }, [])
 
+  // Volta para página 1 ao mudar busca ou tag
   useEffect(() => {
     setPage(1)
-    clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => load(query, 1, tagFilter), 280)
-    return () => clearTimeout(debounceRef.current)
-  }, [query, tagFilter, load])
+  }, [query, tagFilter])
 
+  // Busca com debounce; paginação imediata
   useEffect(() => {
-    load(query, page, tagFilter)
-  }, [page])
+    clearTimeout(debounceRef.current)
+    const delay = isSearching ? 280 : 0
+    debounceRef.current = setTimeout(() => load(query, page, tagFilter), delay)
+    return () => clearTimeout(debounceRef.current)
+  }, [query, tagFilter, page, load, isSearching])
 
-  const pinned = entries.filter((e) => e.is_pinned)
-  const rest    = entries.filter((e) => !e.is_pinned)
+  const pinned = isSearching ? [] : entries.filter((e) => e.is_pinned)
+  const rest = isSearching ? entries : entries.filter((e) => !e.is_pinned)
+  const visible = isSearching ? entries : rest
 
   return (
     <div style={styles.page}>
-      {/* Search bar */}
       <div style={styles.searchWrap}>
         <div style={styles.searchBox}>
           <Search size={16} style={{ color: 'var(--text-3)', flexShrink: 0 }} />
@@ -80,29 +85,29 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* Active filters */}
-      {(tagFilter || query) && (
+      {(tagFilter || isSearching) && (
         <div style={styles.filters}>
-          {query && <span className="tag"><Search size={11} />{query}</span>}
+          {isSearching && <span className="tag"><Search size={11} />{query.trim()}</span>}
           {tagFilter && <span className="tag" style={{ color: 'var(--green)', borderColor: 'var(--green)' }}>#{tagFilter}</span>}
           <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{total} resultado{total !== 1 ? 's' : ''}</span>
         </div>
       )}
 
-      {loading && entries.length === 0 ? (
+      {loading ? (
         <div style={styles.empty}>Buscando…</div>
-      ) : entries.length === 0 ? (
+      ) : visible.length === 0 ? (
         <div style={styles.empty}>
           <span style={{ fontSize: 32 }}>⬡</span>
-          <span>Nenhuma entrada encontrada</span>
-          <button className="btn btn-primary btn-sm" onClick={() => navigate('/entry/new')}>
-            <Plus size={14} /> Criar primeira entrada
-          </button>
+          <span>{isSearching ? 'Nenhuma nota encontrada para esta busca' : 'Nenhuma entrada encontrada'}</span>
+          {!isSearching && (
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/entry/new')}>
+              <Plus size={14} /> Criar primeira entrada
+            </button>
+          )}
         </div>
       ) : (
         <div style={styles.content}>
-          {/* Pinned section */}
-          {pinned.length > 0 && !query && (
+          {pinned.length > 0 && (
             <section style={styles.section}>
               <div style={styles.sectionHeader}><Pin size={13} /> Fixadas</div>
               <div style={styles.grid}>
@@ -111,22 +116,20 @@ export default function HomePage() {
             </section>
           )}
 
-          {/* Main entries */}
           <section style={styles.section}>
-            {pinned.length > 0 && !query && (
-              <div style={styles.sectionHeader}>Recentes</div>
+            {(pinned.length > 0 || isSearching) && (
+              <div style={styles.sectionHeader}>{isSearching ? 'Resultados' : 'Recentes'}</div>
             )}
             <div style={styles.grid}>
-              {(query ? entries : rest).map((e) => <EntryCard key={e.id} entry={e} query={query} />)}
+              {visible.map((e) => <EntryCard key={e.id} entry={e} query={query} />)}
             </div>
           </section>
 
-          {/* Pagination */}
           {total > 24 && (
             <div style={styles.pagination}>
-              <button className="btn btn-ghost btn-sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+              <button className="btn btn-ghost btn-sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>← Anterior</button>
               <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Página {page} de {Math.ceil(total / 24)}</span>
-              <button className="btn btn-ghost btn-sm" disabled={page * 24 >= total} onClick={() => setPage(p => p + 1)}>Próxima →</button>
+              <button className="btn btn-ghost btn-sm" disabled={page * 24 >= total} onClick={() => setPage((p) => p + 1)}>Próxima →</button>
             </div>
           )}
         </div>
