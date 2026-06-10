@@ -16,7 +16,7 @@ Base de conhecimento pessoal — alternativa ao Obsidian com busca full-text, ed
 ## Funcionalidades
 
 - **Autenticação** — registro e login com JWT
-- **Notas Markdown** — código, tabelas, imagens inline e sintaxe Obsidian `![[imagem.png]]`
+- **Notas Markdown** — código, tabelas, imagens inline e sintaxe `![[imagem.png]]`
 - **Editor** — CodeMirror 6 com preview Markdown
 - **Busca full-text** — PostgreSQL `tsvector` + trigram fallback
 - **Tags** — filtragem por tag na sidebar
