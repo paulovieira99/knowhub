@@ -1,6 +1,6 @@
 # ⬡ KnowHub
 
-Base de conhecimento pessoal — alternativa ao Obsidian com busca full-text, editor Markdown e suporte a imagens inline.
+Base de conhecimento pessoal com busca full-text, editor Markdown e suporte a imagens inline.
 
 ## Stack
 
