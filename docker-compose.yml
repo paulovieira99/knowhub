@@ -27,6 +27,10 @@ services:
       DATABASE_URL: postgresql://knowhub:${POSTGRES_PASSWORD}@postgres:5432/knowhub
       SECRET_KEY: ${SECRET_KEY:?Defina SECRET_KEY no arquivo .env}
       UPLOAD_DIR: /app/uploads
+      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
     volumes:
       - uploads_data:/app/uploads
     depends_on:

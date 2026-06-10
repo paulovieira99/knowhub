@@ -39,6 +39,7 @@ export const api = {
     })
   },
   me: () => request('/auth/me'),
+  authConfig: () => request('/auth/config'),
 
   // Entries
   listEntries: (params = {}) => {

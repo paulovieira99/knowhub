@@ -1,13 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
+import { api } from '../lib/api'
 import toast from 'react-hot-toast'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' })
   const [loading, setLoading] = useState(false)
+  const [allowRegistration, setAllowRegistration] = useState(null)
   const register = useAuthStore((s) => s.register)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    api.authConfig()
+      .then((cfg) => setAllowRegistration(cfg.allow_registration))
+      .catch(() => setAllowRegistration(false))
+  }, [])
 
   function set(k) { return (e) => setForm((f) => ({ ...f, [k]: e.target.value })) }
 
@@ -25,6 +33,32 @@ export default function RegisterPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (allowRegistration === null) {
+    return <div style={styles.page}><div style={{ color: 'var(--text-3)' }}>Carregando…</div></div>
+  }
+
+  if (!allowRegistration) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={styles.logo}>
+            <span style={{ fontSize: 28, color: 'var(--accent)' }}>⬡</span>
+            <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>KnowHub</span>
+          </div>
+          <p style={{ color: 'var(--text-3)', fontSize: 13.5, marginBottom: 16 }}>
+            O cadastro público está desativado nesta instância.
+          </p>
+          <p style={{ color: 'var(--text-3)', fontSize: 13.5 }}>
+            Solicite ao administrador a criação da sua conta.
+          </p>
+          <p style={{ marginTop: 24, textAlign: 'center', color: 'var(--text-3)', fontSize: 13.5 }}>
+            <Link to="/login">Voltar ao login</Link>
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

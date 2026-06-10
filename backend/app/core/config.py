@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "/app/uploads"
     MAX_UPLOAD_SIZE: int = 50 * 1024 * 1024  # 50MB
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    ALLOW_REGISTRATION: bool = True
+    BOOTSTRAP_ADMIN_USERNAME: str | None = None
+    BOOTSTRAP_ADMIN_EMAIL: str | None = None
+    BOOTSTRAP_ADMIN_PASSWORD: str | None = None
 
     @field_validator("SECRET_KEY")
     @classmethod

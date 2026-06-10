@@ -1,14 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
+import { api } from '../lib/api'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [allowRegistration, setAllowRegistration] = useState(true)
   const login = useAuthStore((s) => s.login)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    api.authConfig()
+      .then((cfg) => setAllowRegistration(cfg.allow_registration))
+      .catch(() => setAllowRegistration(false))
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -61,10 +69,16 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p style={styles.footer}>
-          Não tem conta?{' '}
-          <Link to="/register">Criar conta</Link>
-        </p>
+        {allowRegistration ? (
+          <p style={styles.footer}>
+            Não tem conta?{' '}
+            <Link to="/register">Criar conta</Link>
+          </p>
+        ) : (
+          <p style={styles.footer}>
+            Cadastro público desativado. Solicite acesso ao administrador.
+          </p>
+        )}
       </div>
     </div>
   )

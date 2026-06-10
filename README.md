@@ -58,6 +58,63 @@ docker compose up -d --build
 
 Abra **http://localhost:3000** e crie sua conta na tela de registro.
 
+## Gerenciamento de usuários
+
+### Uso pessoal (padrão)
+
+Com `ALLOW_REGISTRATION=true` (padrão), qualquer pessoa acessa `/register` e cria sua própria conta. Cada usuário vê apenas suas próprias notas.
+
+### Uso em empresa (cadastro fechado)
+
+Para controlar quem entra no sistema:
+
+1. Desative o cadastro público no `.env`:
+
+```bash
+ALLOW_REGISTRATION=false
+```
+
+2. Crie o primeiro usuário de uma das formas abaixo.
+
+**Opção A — bootstrap automático** (só na primeira subida, com banco vazio):
+
+```bash
+BOOTSTRAP_ADMIN_USERNAME=admin
+BOOTSTRAP_ADMIN_EMAIL=admin@empresa.com
+BOOTSTRAP_ADMIN_PASSWORD=SenhaForte123
+```
+
+**Opção B — linha de comando:**
+
+```bash
+docker compose exec backend python scripts/manage_users.py create \
+  --username admin \
+  --email admin@empresa.com \
+  --password 'SenhaForte123'
+```
+
+3. Crie contas para a equipe:
+
+```bash
+docker compose exec backend python scripts/manage_users.py create \
+  --username maria \
+  --email maria@empresa.com \
+  --password 'OutraSenha456'
+```
+
+### Comandos de administração
+
+```bash
+# Listar usuários
+docker compose exec backend python scripts/manage_users.py list
+
+# Desativar usuário (não consegue mais fazer login)
+docker compose exec backend python scripts/manage_users.py deactivate --username maria
+
+# Reativar usuário
+docker compose exec backend python scripts/manage_users.py activate --username maria
+```
+
 ## Variáveis de ambiente
 
 | Variável            | Obrigatória | Descrição                                      |
@@ -66,6 +123,8 @@ Abra **http://localhost:3000** e crie sua conta na tela de registro.
 | `SECRET_KEY`        | Sim         | Segredo JWT (mín. 32 caracteres recomendado)   |
 | `PORT`              | Não         | Porta exposta no host (padrão: `3000`)          |
 | `CORS_ORIGINS`      | Não         | Origens permitidas, separadas por vírgula       |
+| `ALLOW_REGISTRATION`| Não         | Permite cadastro público em `/register` (padrão: `true`) |
+| `BOOTSTRAP_ADMIN_*` | Não         | Cria o primeiro usuário se o banco estiver vazio |
 
 Use `.env.example` como referência para criar o seu `.env` local.
 
@@ -102,6 +161,8 @@ knowhub/
 │   ├── src/
 │   └── Dockerfile
 ├── nginx/
+├── backend/scripts/
+│   └── manage_users.py
 ├── scripts/
 │   └── setup-env.sh
 ├── docker-compose.yml
